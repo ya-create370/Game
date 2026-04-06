@@ -5,689 +5,237 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TETRIS">
-<meta name="theme-color" content="#00ffb4">
-<title>TETRIS CYBER EDITION</title>
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icon.svg">
+<meta name="theme-color" content="#0a0a0f">
+<title>🎮 Ya's Game Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --gold:#c9a84c;--cyan:#00ffb4;--pink:#ff6b9d;
+  --bg:#08080f;--card:#12121e;
+}
+html,body{width:100%;min-height:100%;background:var(--bg);color:#fff;font-family:"Zen Maru Gothic",sans-serif;}
 
-  :root {
-    --cyan: #00ffb4;
-    --pink: #ff0078;
-    --bg: #0a0a0f;
-    --panel-border: rgba(0,255,180,0.3);
-  }
+/* Background */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 20%,rgba(0,255,180,.07) 0,transparent 55%),
+    radial-gradient(ellipse at 80% 80%,rgba(201,168,76,.07) 0,transparent 55%),
+    radial-gradient(ellipse at 80% 20%,rgba(255,107,157,.05) 0,transparent 45%);
+  pointer-events:none;z-index:0;
+}
+.scanlines{
+  position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);
+  pointer-events:none;z-index:0;
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* Layout */
+.container{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 16px 40px;}
 
-  html, body {
-    width: 100%; height: 100%;
-    background: var(--bg);
-    font-family: 'Share Tech Mono', monospace;
-    overflow: hidden;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-  }
+/* Header */
+header{padding:32px 0 24px;text-align:center;}
+.portal-title{
+  font-family:"Orbitron",monospace;font-size:11px;letter-spacing:6px;
+  color:rgba(0,255,180,.6);text-transform:uppercase;margin-bottom:10px;
+}
+.portal-name{
+  font-family:"Orbitron",monospace;font-size:30px;font-weight:900;
+  background:linear-gradient(135deg,var(--cyan) 0%,var(--gold) 60%,var(--pink) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-shadow:none;
+  letter-spacing:2px;line-height:1.1;
+  filter:drop-shadow(0 0 20px rgba(0,255,180,.3));
+}
+.portal-sub{font-size:12px;color:rgba(255,255,255,.3);margin-top:8px;letter-spacing:2px;}
 
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background:
-      radial-gradient(ellipse at 20% 40%, rgba(0,255,180,0.06) 0%, transparent 55%),
-      radial-gradient(ellipse at 80% 60%, rgba(255,0,120,0.06) 0%, transparent 55%);
-    pointer-events: none; z-index: 0;
-  }
+/* Stats bar */
+.stats-bar{
+  display:flex;justify-content:center;gap:24px;
+  padding:12px 0;margin-bottom:24px;
+  border-top:1px solid rgba(0,255,180,.1);
+  border-bottom:1px solid rgba(0,255,180,.1);
+}
+.stat{text-align:center;}
+.stat-n{font-family:"Orbitron",monospace;font-size:20px;font-weight:700;color:var(--cyan);}
+.stat-l{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);}
 
-  .scanlines {
-    position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
-    pointer-events: none; z-index: 999;
-  }
+/* Section */
+.section-label{
+  font-family:"Orbitron",monospace;font-size:9px;letter-spacing:4px;
+  color:rgba(0,255,180,.5);text-transform:uppercase;
+  margin-bottom:12px;padding-left:4px;
+}
 
-  /* ===== LAYOUT ===== */
-  #app {
-    position: relative; z-index: 1;
-    width: 100%; height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-  }
+/* Game cards */
+.games-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
 
-  /* Top bar */
-  .top-bar {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px 4px;
-    flex-shrink: 0;
-  }
+.game-card{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:16px;
+  display:flex;align-items:center;gap:16px;
+  text-decoration:none;color:#fff;
+  position:relative;overflow:hidden;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  cursor:pointer;
+}
+.game-card::before{
+  content:'';position:absolute;inset:0;border-radius:16px;opacity:0;
+  transition:opacity .18s;
+}
+.game-card:active{transform:scale(.97);}
 
-  .title-text {
-    font-family: 'Orbitron', monospace;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 5px;
-    color: var(--cyan);
-    text-shadow: 0 0 15px rgba(0,255,180,0.5);
-  }
+/* Color variants */
+.card-cyan{border-color:rgba(0,255,180,.2);}
+.card-cyan::before{background:linear-gradient(135deg,rgba(0,255,180,.08),transparent);}
+.card-cyan:active{border-color:rgba(0,255,180,.5);box-shadow:0 0 20px rgba(0,255,180,.15);}
+.card-cyan::before{opacity:1;}
 
-  .stat-row {
-    display: flex;
-    gap: 12px;
-  }
+.card-gold{border-color:rgba(201,168,76,.2);}
+.card-gold::before{background:linear-gradient(135deg,rgba(201,168,76,.08),transparent);}
+.card-gold:active{border-color:rgba(201,168,76,.5);box-shadow:0 0 20px rgba(201,168,76,.15);}
 
-  .stat {
-    text-align: center;
-  }
+.card-pink{border-color:rgba(255,107,157,.2);}
+.card-pink::before{background:linear-gradient(135deg,rgba(255,107,157,.08),transparent);}
+.card-pink:active{border-color:rgba(255,107,157,.5);box-shadow:0 0 20px rgba(255,107,157,.15);}
 
-  .stat-label {
-    font-family: 'Orbitron', monospace;
-    font-size: 7px;
-    letter-spacing: 2px;
-    color: rgba(0,255,180,0.5);
-  }
+.card-purple{border-color:rgba(180,100,255,.2);}
+.card-purple::before{background:linear-gradient(135deg,rgba(180,100,255,.08),transparent);}
+.card-purple:active{border-color:rgba(180,100,255,.5);box-shadow:0 0 20px rgba(180,100,255,.15);}
 
-  .stat-val {
-    font-family: 'Orbitron', monospace;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--cyan);
-    text-shadow: 0 0 12px rgba(0,255,180,0.5);
-    line-height: 1.1;
-  }
+/* Icon */
+.game-icon{
+  width:60px;height:60px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;flex-shrink:0;position:relative;
+}
+.icon-cyan{background:linear-gradient(135deg,rgba(0,255,180,.15),rgba(0,255,180,.05));border:1px solid rgba(0,255,180,.3);}
+.icon-gold{background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:1px solid rgba(201,168,76,.3);}
+.icon-pink{background:linear-gradient(135deg,rgba(255,107,157,.15),rgba(255,107,157,.05));border:1px solid rgba(255,107,157,.3);}
+.icon-purple{background:linear-gradient(135deg,rgba(180,100,255,.15),rgba(180,100,255,.05));border:1px solid rgba(180,100,255,.3);}
 
-  /* Game area */
-  .game-area {
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    flex: 1;
-    padding: 4px 8px 0;
-  }
+.game-info{flex:1;min-width:0;}
+.game-name{font-family:"Orbitron",monospace;font-size:14px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.game-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.5;margin-bottom:6px;}
+.game-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.tag{
+  font-size:9px;letter-spacing:1px;padding:2px 8px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.35);
+}
 
-  .canvas-frame {
-    position: relative;
-    padding: 2px;
-    background: linear-gradient(135deg, rgba(0,255,180,0.5) 0%, rgba(255,0,120,0.5) 50%, rgba(0,180,255,0.5) 100%);
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
-    flex-shrink: 0;
-  }
+.game-arrow{
+  font-size:18px;color:rgba(255,255,255,.2);flex-shrink:0;
+  transition:transform .18s,color .18s;
+}
+.game-card:active .game-arrow{transform:translateX(4px);color:rgba(255,255,255,.5);}
 
-  .canvas-inner {
-    background: #080810;
-    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-  }
+/* Coming soon */
+.game-card.coming-soon{opacity:.45;cursor:default;pointer-events:none;}
+.coming-badge{
+  position:absolute;top:10px;right:10px;
+  font-size:8px;letter-spacing:2px;padding:3px 8px;border-radius:20px;
+  background:rgba(255,255,255,.06);color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.1);
+}
 
-  #gameCanvas { display: block; }
+/* Footer */
+footer{text-align:center;padding:20px 0;}
+.footer-cat{font-size:28px;margin-bottom:6px;}
+.footer-txt{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:2px;}
+.footer-gold{color:rgba(201,168,76,.4);}
 
-  /* Side panel */
-  .side-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 72px;
-    flex-shrink: 0;
-  }
-
-  .pbox {
-    border: 1px solid var(--panel-border);
-    background: rgba(0,255,180,0.03);
-    padding: 6px 8px;
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-  }
-
-  .pbox-label {
-    font-family: 'Orbitron', monospace;
-    font-size: 6px;
-    letter-spacing: 2px;
-    color: rgba(0,255,180,0.5);
-    margin-bottom: 4px;
-  }
-
-  .pbox-val {
-    font-family: 'Orbitron', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--cyan);
-    text-shadow: 0 0 10px rgba(0,255,180,0.4);
-  }
-
-  #nextCanvas { display: block; margin: 0 auto; }
-
-  .hs-box {
-    border-color: rgba(255,0,120,0.3);
-    background: rgba(255,0,120,0.03);
-  }
-
-  .hs-box .pbox-label { color: rgba(255,0,120,0.5); }
-  .hs-box .pbox-val { color: var(--pink); font-size: 12px; text-shadow: 0 0 10px rgba(255,0,120,0.4); }
-
-  /* Touch controls */
-  .touch-controls {
-    width: 100%;
-    padding: 6px 8px 8px;
-    flex-shrink: 0;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: auto auto;
-    gap: 6px;
-    max-width: 360px;
-  }
-
-  .btn {
-    background: rgba(0,255,180,0.06);
-    border: 1px solid rgba(0,255,180,0.25);
-    color: var(--cyan);
-    font-family: 'Orbitron', monospace;
-    font-size: 18px;
-    padding: 10px 4px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
-    transition: background 0.1s, transform 0.1s;
-    -webkit-touch-callout: none;
-    touch-action: manipulation;
-  }
-
-  .btn:active, .btn.pressed {
-    background: rgba(0,255,180,0.2);
-    transform: scale(0.95);
-  }
-
-  .btn-drop {
-    background: rgba(255,0,120,0.06);
-    border-color: rgba(255,0,120,0.3);
-    color: var(--pink);
-    font-size: 14px;
-    letter-spacing: 1px;
-    grid-column: span 5;
-  }
-
-  .btn-drop:active {
-    background: rgba(255,0,120,0.2);
-  }
-
-  .btn-pause {
-    font-size: 11px;
-    letter-spacing: 1px;
-    background: rgba(255,255,255,0.04);
-    border-color: rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.4);
-  }
-
-  /* Overlay */
-  .overlay {
-    position: absolute;
-    inset: 2px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: rgba(8,8,16,0.93);
-    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-    z-index: 10;
-    gap: 10px;
-  }
-
-  .ov-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 22px;
-    font-weight: 900;
-    color: var(--cyan);
-    letter-spacing: 4px;
-    text-shadow: 0 0 30px rgba(0,255,180,0.8);
-  }
-
-  .ov-sub {
-    font-size: 10px;
-    color: rgba(255,255,255,0.35);
-    letter-spacing: 3px;
-  }
-
-  .ov-score {
-    font-family: 'Orbitron', monospace;
-    font-size: 13px;
-    color: rgba(0,255,180,0.7);
-    display: none;
-  }
-
-  .ov-btn {
-    font-family: 'Orbitron', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: #0a0a0f;
-    background: var(--cyan);
-    border: none;
-    padding: 12px 32px;
-    cursor: pointer;
-    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-    touch-action: manipulation;
-  }
-
-  .ov-btn:active { opacity: 0.8; transform: scale(0.97); }
-
-  /* Install banner */
-  .install-banner {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: rgba(0,20,15,0.95);
-    border-top: 1px solid rgba(0,255,180,0.3);
-    padding: 10px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-    z-index: 1000;
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
-  }
-
-  .install-banner.show { transform: translateY(0); }
-
-  .install-text {
-    font-size: 11px;
-    color: rgba(255,255,255,0.6);
-    line-height: 1.4;
-  }
-
-  .install-text strong { color: var(--cyan); font-family: 'Orbitron', monospace; font-size: 10px; }
-
-  .install-actions { display: flex; gap: 8px; }
-
-  .install-btn {
-    font-family: 'Orbitron', monospace;
-    font-size: 9px;
-    letter-spacing: 1px;
-    border: none; cursor: pointer;
-    padding: 6px 12px;
-  }
-
-  .install-btn.yes { background: var(--cyan); color: #0a0a0f; }
-  .install-btn.no  { background: transparent; color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.15); }
+/* Animate cards in */
+.game-card{animation:fadeUp .4s ease backwards;}
+.game-card:nth-child(1){animation-delay:.05s;}
+.game-card:nth-child(2){animation-delay:.1s;}
+.game-card:nth-child(3){animation-delay:.15s;}
+.game-card:nth-child(4){animation-delay:.2s;}
+.game-card:nth-child(5){animation-delay:.25s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
 <div class="scanlines"></div>
+<div class="container">
 
-<div id="app">
-  <!-- Top bar: title + scores -->
-  <div class="top-bar">
-    <div class="title-text">TETRIS</div>
-    <div class="stat-row">
-      <div class="stat">
-        <div class="stat-label">SCORE</div>
-        <div class="stat-val" id="scoreDisplay">0</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">LINES</div>
-        <div class="stat-val" id="linesDisplay">0</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">LEVEL</div>
-        <div class="stat-val" id="levelDisplay">1</div>
-      </div>
-    </div>
+  <header>
+    <div class="portal-title">Game Portal</div>
+    <div class="portal-name">YASU'S<br>ARCADE</div>
+    <div class="portal-sub">Bangkok Edition 🇹🇭</div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-n" id="gameCount">2</div><div class="stat-l">GAMES</div></div>
+    <div class="stat"><div class="stat-n">∞</div><div class="stat-l">FUN</div></div>
+    <div class="stat"><div class="stat-n">FREE</div><div class="stat-l">PRICE</div></div>
   </div>
 
-  <!-- Game area -->
-  <div class="game-area">
-    <div class="canvas-frame" style="position:relative;">
-      <div class="canvas-inner">
-        <canvas id="gameCanvas"></canvas>
+  <div class="section-label">▸ Games</div>
+  <div class="games-grid">
+
+    <!-- Tetris -->
+    <a class="game-card card-cyan" href="./index.html">
+      <div class="game-icon icon-cyan">🟦</div>
+      <div class="game-info">
+        <div class="game-name">TETRIS</div>
+        <div class="game-desc">サイバー風テトリス。ブロックを積み上げよう！</div>
+        <div class="game-tags">
+          <span class="tag">PUZZLE</span>
+          <span class="tag">CYBER</span>
+          <span class="tag">PWA</span>
+        </div>
       </div>
-      <div class="overlay" id="overlay">
-        <div class="ov-title">TETRIS</div>
-        <div class="ov-sub" id="ovMsg">CYBER EDITION</div>
-        <div class="ov-score" id="ovScore"></div>
-        <button class="ov-btn" id="startBtn">START</button>
+      <div class="game-arrow">›</div>
+    </a>
+
+    <!-- Aki Chan -->
+    <a class="game-card card-gold" href="./aki-game-v3.html">
+      <div class="game-icon icon-gold">🐱</div>
+      <div class="game-info">
+        <div class="game-name">AKI CHAN</div>
+        <div class="game-desc">かわいい言葉をキャッチして悪口はよけよう！🇯🇵🇹🇭</div>
+        <div class="game-tags">
+          <span class="tag">CATCH</span>
+          <span class="tag">日本語</span>
+          <span class="tag">ภาษาไทย</span>
+        </div>
       </div>
+      <div class="game-arrow">›</div>
+    </a>
+
+    <!-- Coming soon slots -->
+    <div class="game-card card-pink coming-soon">
+      <div class="coming-badge">COMING SOON</div>
+      <div class="game-icon icon-pink">❓</div>
+      <div class="game-info">
+        <div class="game-name">NEXT GAME</div>
+        <div class="game-desc">新しいゲームを追加予定...</div>
+        <div class="game-tags"><span class="tag">???</span></div>
+      </div>
+      <div class="game-arrow">›</div>
     </div>
 
-    <div class="side-panel">
-      <div class="pbox">
-        <div class="pbox-label">NEXT</div>
-        <canvas id="nextCanvas" width="60" height="60"></canvas>
+    <div class="game-card card-purple coming-soon">
+      <div class="coming-badge">COMING SOON</div>
+      <div class="game-icon icon-purple">❓</div>
+      <div class="game-info">
+        <div class="game-name">NEXT GAME</div>
+        <div class="game-desc">新しいゲームを追加予定...</div>
+        <div class="game-tags"><span class="tag">???</span></div>
       </div>
-      <div class="pbox hs-box">
-        <div class="pbox-label">BEST</div>
-        <div class="pbox-val" id="highScoreDisplay">0</div>
-      </div>
+      <div class="game-arrow">›</div>
     </div>
+
   </div>
 
-  <!-- Touch controls -->
-  <div class="touch-controls" id="touchControls">
-    <button class="btn" id="btnLeft">◀</button>
-    <button class="btn" id="btnRotate">↻</button>
-    <button class="btn" id="btnDown">▼</button>
-    <button class="btn" id="btnRight">▶</button>
-    <button class="btn btn-pause" id="btnPause">⏸</button>
-    <button class="btn btn-drop" id="btnDrop">HARD DROP</button>
-  </div>
+  <footer>
+    <div class="footer-cat">🐱</div>
+    <div class="footer-txt">Made with ❤️ in <span class="footer-gold">Bangkok</span></div>
+  </footer>
+
 </div>
-
-<!-- PWA install banner -->
-<div class="install-banner" id="installBanner">
-  <div class="install-text">
-    <strong>ホーム画面に追加</strong><br>
-    オフラインでもプレイできます
-  </div>
-  <div class="install-actions">
-    <button class="install-btn no" id="installNo">後で</button>
-    <button class="install-btn yes" id="installYes">追加する</button>
-  </div>
-</div>
-
-<script>
-// ===== GAME ENGINE =====
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const nextCanvas = document.getElementById('nextCanvas');
-const nextCtx = nextCanvas.getContext('2d');
-
-// Responsive sizing
-function calcSize() {
-  const maxH = window.innerHeight - 160; // top bar + controls
-  const maxW = window.innerWidth - 90;   // side panel
-  const blockH = Math.floor(maxH / 20);
-  const blockW = Math.floor(maxW / 12);
-  return Math.min(blockH, blockW, 24);
-}
-
-let BLOCK = calcSize();
-const COLS = 12, ROWS = 20;
-
-function resizeCanvas() {
-  BLOCK = calcSize();
-  canvas.width  = COLS * BLOCK;
-  canvas.height = ROWS * BLOCK;
-}
-resizeCanvas();
-
-const PIECES = [
-  { shape: [[1,1,1,1]], color: '#00e5ff' },
-  { shape: [[1,1],[1,1]], color: '#ffee00' },
-  { shape: [[0,1,0],[1,1,1]], color: '#cc00ff' },
-  { shape: [[1,0,0],[1,1,1]], color: '#ff6600' },
-  { shape: [[0,0,1],[1,1,1]], color: '#0055ff' },
-  { shape: [[0,1,1],[1,1,0]], color: '#00ff88' },
-  { shape: [[1,1,0],[0,1,1]], color: '#ff0060' },
-];
-
-let board, current, next, score, lines, level, gameOver, paused, dropInterval, lastTime;
-let highScore = parseInt(localStorage.getItem('tetris_hs') || '0');
-document.getElementById('highScoreDisplay').textContent = highScore;
-
-function createBoard() { return Array.from({length: ROWS}, () => Array(COLS).fill(0)); }
-
-function randomPiece() {
-  const p = PIECES[Math.floor(Math.random() * PIECES.length)];
-  return {
-    shape: p.shape.map(r => [...r]),
-    color: p.color,
-    x: Math.floor(COLS / 2) - Math.floor(p.shape[0].length / 2),
-    y: 0
-  };
-}
-
-function rotate(shape) { return shape[0].map((_, i) => shape.map(row => row[i]).reverse()); }
-
-function valid(piece, dx=0, dy=0, sh=piece.shape) {
-  return sh.every((row, r) => row.every((cell, c) => {
-    if (!cell) return true;
-    const nx = piece.x + c + dx, ny = piece.y + r + dy;
-    return nx >= 0 && nx < COLS && ny < ROWS && (ny < 0 || !board[ny][nx]);
-  }));
-}
-
-function merge() {
-  current.shape.forEach((row, r) => row.forEach((cell, c) => {
-    if (cell) board[current.y + r][current.x + c] = current.color;
-  }));
-}
-
-function clearLines() {
-  let cleared = 0;
-  for (let r = ROWS - 1; r >= 0; r--) {
-    if (board[r].every(c => c)) {
-      board.splice(r, 1); board.unshift(Array(COLS).fill(0));
-      cleared++; r++;
-    }
-  }
-  if (cleared) {
-    const pts = [0, 100, 300, 500, 800];
-    score += (pts[cleared] || 800) * level;
-    lines += cleared;
-    level = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(80, 800 - (level - 1) * 70);
-    updateStats();
-  }
-}
-
-function updateStats() {
-  document.getElementById('scoreDisplay').textContent = score;
-  document.getElementById('linesDisplay').textContent = lines;
-  document.getElementById('levelDisplay').textContent = level;
-}
-
-function ghostY() {
-  let gy = current.y;
-  while (valid(current, 0, gy - current.y + 1)) gy++;
-  return gy;
-}
-
-function drawBlock(cx, x, y, color, size) {
-  const s = size || BLOCK;
-  cx.fillStyle = color;
-  cx.fillRect(x*s+1, y*s+1, s-2, s-2);
-  cx.fillStyle = 'rgba(255,255,255,0.18)';
-  cx.fillRect(x*s+1, y*s+1, s-2, 2);
-  cx.fillRect(x*s+1, y*s+1, 2, s-2);
-  cx.fillStyle = 'rgba(0,0,0,0.25)';
-  cx.fillRect(x*s+s-3, y*s+1, 2, s-2);
-  cx.fillRect(x*s+1, y*s+s-3, s-2, 2);
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // Grid
-  ctx.strokeStyle = 'rgba(0,255,180,0.05)'; ctx.lineWidth = 0.5;
-  for (let c = 0; c <= COLS; c++) { ctx.beginPath(); ctx.moveTo(c*BLOCK,0); ctx.lineTo(c*BLOCK,ROWS*BLOCK); ctx.stroke(); }
-  for (let r = 0; r <= ROWS; r++) { ctx.beginPath(); ctx.moveTo(0,r*BLOCK); ctx.lineTo(COLS*BLOCK,r*BLOCK); ctx.stroke(); }
-  // Board
-  board.forEach((row, r) => row.forEach((cell, c) => { if (cell) drawBlock(ctx, c, r, cell); }));
-  // Ghost
-  if (current) {
-    const gy = ghostY();
-    current.shape.forEach((row, r) => row.forEach((cell, c) => {
-      if (cell) {
-        ctx.fillStyle = current.color + '15';
-        ctx.strokeStyle = current.color + '35';
-        ctx.lineWidth = 1;
-        ctx.fillRect((current.x+c)*BLOCK+1, (gy+r)*BLOCK+1, BLOCK-2, BLOCK-2);
-        ctx.strokeRect((current.x+c)*BLOCK+1, (gy+r)*BLOCK+1, BLOCK-2, BLOCK-2);
-      }
-    }));
-  }
-  // Current
-  if (current) current.shape.forEach((row, r) => row.forEach((cell, c) => {
-    if (cell) drawBlock(ctx, current.x+c, current.y+r, current.color);
-  }));
-}
-
-function drawNext() {
-  nextCtx.clearRect(0, 0, 60, 60);
-  if (!next) return;
-  const s = 12;
-  const ox = Math.floor((5 - next.shape[0].length) / 2);
-  const oy = Math.floor((5 - next.shape.length) / 2);
-  next.shape.forEach((row, r) => row.forEach((cell, c) => {
-    if (cell) {
-      nextCtx.fillStyle = next.color;
-      nextCtx.fillRect((ox+c)*s+1, (oy+r)*s+1, s-2, s-2);
-      nextCtx.fillStyle = 'rgba(255,255,255,0.2)';
-      nextCtx.fillRect((ox+c)*s+1, (oy+r)*s+1, s-2, 2);
-    }
-  }));
-}
-
-function update(time = 0) {
-  if (gameOver || paused) return;
-  if (time - lastTime > dropInterval) {
-    lastTime = time;
-    if (valid(current, 0, 1)) { current.y++; }
-    else {
-      merge(); clearLines();
-      current = next; next = randomPiece(); drawNext();
-      if (!valid(current)) { endGame(); return; }
-    }
-  }
-  draw();
-  requestAnimationFrame(update);
-}
-
-function startGame() {
-  board = createBoard();
-  score = 0; lines = 0; level = 1; dropInterval = 800; lastTime = 0;
-  gameOver = false; paused = false;
-  current = randomPiece(); next = randomPiece();
-  updateStats(); drawNext();
-  document.getElementById('overlay').style.display = 'none';
-  requestAnimationFrame(update);
-}
-
-function endGame() {
-  gameOver = true;
-  if (score > highScore) {
-    highScore = score;
-    localStorage.setItem('tetris_hs', highScore);
-    document.getElementById('highScoreDisplay').textContent = highScore;
-  }
-  const overlay = document.getElementById('overlay');
-  overlay.style.display = 'flex';
-  document.getElementById('ovMsg').textContent = 'GAME OVER';
-  const os = document.getElementById('ovScore');
-  os.style.display = 'block';
-  os.textContent = 'SCORE: ' + score;
-  document.getElementById('startBtn').textContent = 'RETRY';
-}
-
-document.getElementById('startBtn').addEventListener('click', startGame);
-
-// ===== KEYBOARD =====
-document.addEventListener('keydown', e => {
-  if (gameOver) return;
-  if (e.key==='p'||e.key==='P') { paused=!paused; if(!paused) requestAnimationFrame(update); return; }
-  if (paused) return;
-  switch(e.key) {
-    case 'ArrowLeft':  if(valid(current,-1)) current.x--; break;
-    case 'ArrowRight': if(valid(current,1))  current.x++; break;
-    case 'ArrowDown':
-      if(valid(current,0,1)){current.y++;score++;updateStats();}
-      break;
-    case 'ArrowUp': {
-      const r=rotate(current.shape);
-      if(valid(current,0,0,r)) current.shape=r;
-      else if(valid(current,1,0,r)){current.shape=r;current.x++;}
-      else if(valid(current,-1,0,r)){current.shape=r;current.x--;}
-      break;
-    }
-    case ' ': {
-      e.preventDefault();
-      const gy=ghostY(); score+=(gy-current.y)*2; current.y=gy; updateStats();
-      merge(); clearLines();
-      current=next; next=randomPiece(); drawNext();
-      if(!valid(current)) endGame();
-      break;
-    }
-  }
-  draw();
-});
-
-// ===== TOUCH BUTTONS =====
-function addBtn(id, action) {
-  const el = document.getElementById(id);
-  let interval = null;
-  const start = (e) => {
-    e.preventDefault();
-    el.classList.add('pressed');
-    action();
-    if (id === 'btnLeft' || id === 'btnRight' || id === 'btnDown') {
-      interval = setInterval(action, 100);
-    }
-  };
-  const end = (e) => {
-    e.preventDefault();
-    el.classList.remove('pressed');
-    if (interval) { clearInterval(interval); interval = null; }
-  };
-  el.addEventListener('touchstart', start, {passive:false});
-  el.addEventListener('touchend', end, {passive:false});
-  el.addEventListener('mousedown', start);
-  el.addEventListener('mouseup', end);
-}
-
-addBtn('btnLeft', () => {
-  if (!current || gameOver || paused) return;
-  if (valid(current, -1)) { current.x--; draw(); }
-});
-addBtn('btnRight', () => {
-  if (!current || gameOver || paused) return;
-  if (valid(current, 1)) { current.x++; draw(); }
-});
-addBtn('btnDown', () => {
-  if (!current || gameOver || paused) return;
-  if (valid(current, 0, 1)) { current.y++; score++; updateStats(); draw(); }
-});
-addBtn('btnRotate', () => {
-  if (!current || gameOver || paused) return;
-  const r = rotate(current.shape);
-  if (valid(current,0,0,r)) current.shape=r;
-  else if (valid(current,1,0,r)){current.shape=r;current.x++;}
-  else if (valid(current,-1,0,r)){current.shape=r;current.x--;}
-  draw();
-});
-addBtn('btnDrop', () => {
-  if (!current || gameOver || paused) return;
-  const gy=ghostY(); score+=(gy-current.y)*2; current.y=gy; updateStats();
-  merge(); clearLines();
-  current=next; next=randomPiece(); drawNext();
-  if(!valid(current)) endGame();
-  else draw();
-});
-document.getElementById('btnPause').addEventListener('click', () => {
-  if (gameOver) return;
-  paused = !paused;
-  document.getElementById('btnPause').textContent = paused ? '▶' : '⏸';
-  if (!paused) { lastTime = 0; requestAnimationFrame(update); }
-});
-
-// ===== PWA =====
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
-}
-
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  setTimeout(() => document.getElementById('installBanner').classList.add('show'), 2000);
-});
-
-document.getElementById('installYes').addEventListener('click', async () => {
-  document.getElementById('installBanner').classList.remove('show');
-  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
-});
-document.getElementById('installNo').addEventListener('click', () => {
-  document.getElementById('installBanner').classList.remove('show');
-});
-
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').classList.remove('show');
-});
-
-draw();
-</script>
 </body>
 </html>
